@@ -10,7 +10,6 @@ import "./App.css";
 export default function App() {
   const [startQuiz, setStartQuiz] = useState(false);
   const [quizz, setQuizz] = useState([]);
-  const [selected, setSelected] = useState([]);
 
   function selectedOption(event) {
     // console.log(event.target);
@@ -21,11 +20,6 @@ export default function App() {
     );
     // console.log("my answer:", event.target.value);
     console.log("the correct answer", theSelectedOption.answer);
-    setSelected((prev) => {
-      prev.push(event.target.value);
-      return prev;
-    });
-    console.log(selected);
   }
 
   useEffect(() => {
@@ -99,16 +93,8 @@ export default function App() {
 // Create new array with all answers and randomly insert correct answer into array of incorrects
 // Limit answer choice to 1, add an extra parameter in the object or use radio as btn
 
-// chatgpt random shuffle:
-
-// function shuffleArray(array) {
-//   for (let i = array.length - 1; i > 0; i--) {
-//     const j = Math.floor(Math.random() * (i + 1));
-//     [array[i], array[j]] = [array[j], array[i]];
-//   }
-//   return array;
-// }
-// Example usage
-// const myArray = [1, 2, 3, 4, 5];
-// const shuffledArray = shuffleArray(myArray);
-// console.log(shuffledArray);
+// Check answers btn fn:
+// create a state for each question
+// add an onchange on each input and save the selected to its state
+// when you click the "check answers" btn, check the questions states value
+// ...against the answers in the quizz state and apply styles and conditions for correct and wrong ones
