@@ -1,34 +1,114 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
+import { nanoid } from "nanoid";
+import { decode } from "html-entities";
 
-function App() {
-  const [count, setCount] = useState(0)
+import HomePage from "./HomePage";
+import QuizPage from "./QuizPage";
+decode("&lt; &gt; &quot; &apos; &amp; &#169; &#8710; &#039;");
+import "./App.css";
+
+export default function App() {
+  const [startQuiz, setStartQuiz] = useState(false);
+  const [quizz, setQuizz] = useState([]);
+  const [selected, setSelected] = useState([]);
+
+  function selectedOption(event) {
+    // console.log(event.target);
+    // console.log(event.target.name);
+    // console.log(quizz.find((el) => el.eachQuestionId === event.target.name));
+    const theSelectedOption = quizz.find(
+      (el) => el.eachQuestionId === event.target.name
+    );
+    // console.log("my answer:", event.target.value);
+    console.log("the correct answer", theSelectedOption.answer);
+    setSelected((prev) => {
+      prev.push(event.target.value);
+      return prev;
+    });
+    console.log(selected);
+  }
+
+  useEffect(() => {
+    async function getQuiz() {
+      const res = await fetch("https://opentdb.com/api.php?amount=5");
+      const data = await res.json();
+
+      setQuizz(
+        data.results.map((data) => {
+          return {
+            eachQuestionId: nanoid(),
+            question: data.question,
+            options: shuffleArray([
+              ...data.incorrect_answers,
+              data.correct_answer,
+            ]),
+            // options: [
+            //   Object.assign({}, [
+            //     shuffleArray([...data.incorrect_answers, data.correct_answer]),
+            //   ]),
+            // ],
+            answer: data.correct_answer,
+            isSelected: selected,
+          };
+        })
+      );
+    }
+    getQuiz();
+  }, [startQuiz]);
+
+  const quizArray = quizz.map((el) => {
+    return (
+      <QuizPage
+        id={el.eachQuestionId}
+        question={el.question}
+        options={el.options}
+        selectedOption={selectedOption}
+        selected={el.isSelected}
+      />
+    );
+  });
+
+  // ///////////////
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+    <main>
+      {!startQuiz && <HomePage setStartQuiz={setStartQuiz} id={nanoid()} />}
+      {startQuiz && quizArray}
+      <button className="submit-btn">Check Answers</button>
+    </main>
+  );
 }
 
-export default App
+// URL => https://opentdb.com/api.php?amount=5
+
+// Requirements:
+// 2 screens. start and question
+// Pull 5 questions from the OTDB API
+// Tally correct answers after "check answers" is clicked
+// style and polish UI
+
+// Hints:
+// Use library to decode html entities
+// Create new array with all answers and randomly insert correct answer into array of incorrects
+// Limit answer choice to 1, add an extra parameter in the object or use radio as btn
+
+// chatgpt random shuffle:
+
+// function shuffleArray(array) {
+//   for (let i = array.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [array[i], array[j]] = [array[j], array[i]];
+//   }
+//   return array;
+// }
+// Example usage
+// const myArray = [1, 2, 3, 4, 5];
+// const shuffledArray = shuffleArray(myArray);
+// console.log(shuffledArray);
