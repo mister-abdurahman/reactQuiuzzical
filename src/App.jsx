@@ -11,16 +11,22 @@ export default function App() {
   const [startQuiz, setStartQuiz] = useState(false);
   const [quizz, setQuizz] = useState([]);
 
-  function selectedOption(event) {
-    // console.log(event.target);
-    // console.log(event.target.name);
-    // console.log(quizz.find((el) => el.eachQuestionId === event.target.name));
+  function saveSelectedOption(event) {
     const theSelectedOption = quizz.find(
       (el) => el.eachQuestionId === event.target.name
     );
-    // console.log("my answer:", event.target.value);
-    console.log("the correct answer", theSelectedOption.answer);
+    theSelectedOption.selectedAns = event.target.value;
   }
+
+  function checkAnswers(){
+    quizz.forEach((el)=>{
+      // if(el.selectedAns !== el.answer) console.log('You gat it')
+    })
+    console.log(document.getElementsByClassName('option'))
+    // const parent = document.getElementsByClassName('options')
+  }
+
+  // console.log(quizz)
 
   useEffect(() => {
     async function getQuiz() {
@@ -41,8 +47,7 @@ export default function App() {
             //     shuffleArray([...data.incorrect_answers, data.correct_answer]),
             //   ]),
             // ],
-            answer: data.correct_answer,
-            isSelected: selected,
+            answer: data.correct_answer
           };
         })
       );
@@ -56,7 +61,7 @@ export default function App() {
         id={el.eachQuestionId}
         question={el.question}
         options={el.options}
-        selectedOption={selectedOption}
+        saveSelectedOption={saveSelectedOption}
         selected={el.isSelected}
       />
     );
@@ -75,7 +80,7 @@ export default function App() {
     <main>
       {!startQuiz && <HomePage setStartQuiz={setStartQuiz} id={nanoid()} />}
       {startQuiz && quizArray}
-      <button className="submit-btn">Check Answers</button>
+      {startQuiz && <button className="submit-btn" onClick={checkAnswers}>Check Answers</button>}
     </main>
   );
 }
