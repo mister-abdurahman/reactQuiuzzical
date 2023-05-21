@@ -1,62 +1,86 @@
 import React, { useEffect, useState } from "react";
 import { nanoid } from "nanoid";
-import { decode } from "html-entities";
+import {decode} from 'he'
 
 import HomePage from "./HomePage";
 import QuizPage from "./QuizPage";
-decode("&lt; &gt; &quot; &apos; &amp; &#169; &#8710; &#039;");
 import "./App.css";
+
 
 export default function App() {
   const [startQuiz, setStartQuiz] = useState(false);
   const [quizz, setQuizz] = useState([]);
-
-  function selectedOption(event) {
-    // console.log(event.target);
-    // console.log(event.target.name);
-    // console.log(quizz.find((el) => el.eachQuestionId === event.target.name));
+  
+  const [playAgain, setPlayAgain] = useState(false);
+  const [numOfCorrect, setNumOfCorrect] = useState(0);
+  
+  function saveSelectedOption(event) {
     const theSelectedOption = quizz.find(
       (el) => el.eachQuestionId === event.target.name
-    );
-    // console.log("my answer:", event.target.value);
-    console.log("the correct answer", theSelectedOption.answer);
-  }
-
-  useEffect(() => {
-    async function getQuiz() {
-      const res = await fetch("https://opentdb.com/api.php?amount=5");
-      const data = await res.json();
-
+      );
+      theSelectedOption.selectedAns = event.target.value;
+    }
+    
+    function checkAnswers(){
+      quizz.forEach((el)=>{
+        if(el.selectedAns === el.answer) {
+          setNumOfCorrect((prev)=>{
+            return prev + 1
+          })
+        }
+        
+        if(el.selectedAns !== el.answer) {
+          return document.getElementsByName(el.eachQuestionId).forEach((eachInput)=>{
+            if(eachInput.value === el.answer){
+              eachInput.classList.add('correct-answer')
+            }
+          })
+        }
+      })
+      setPlayAgain(true)
+    }
+    
+    function playAgainFn(){
+      setStartQuiz(false)
+      setPlayAgain(false)
+      setNumOfCorrect(0)
+    }
+    
+    useEffect(() => {
+      async function getQuiz() {
+        const res = await fetch("https://opentdb.com/api.php?amount=5");
+        const data = await res.json();
+    
       setQuizz(
         data.results.map((data) => {
           return {
             eachQuestionId: nanoid(),
-            question: data.question,
+            question: decode(data.question),
             options: shuffleArray([
-              ...data.incorrect_answers,
-              data.correct_answer,
+             decode(...data.incorrect_answers),
+             decode(data.correct_answer),
             ]),
             // options: [
-            //   Object.assign({}, [
+              //   Object.assign({}, [
             //     shuffleArray([...data.incorrect_answers, data.correct_answer]),
             //   ]),
             // ],
-            answer: data.correct_answer,
-            isSelected: selected,
+            answer: data.correct_answer
           };
         })
       );
+      // console.log(quizz[0].answer)
     }
     getQuiz();
   }, [startQuiz]);
-
+  
   const quizArray = quizz.map((el) => {
     return (
       <QuizPage
         id={el.eachQuestionId}
         question={el.question}
         options={el.options}
-        selectedOption={selectedOption}
+        saveSelectedOption={saveSelectedOption}
         selected={el.isSelected}
       />
     );
@@ -75,7 +99,14 @@ export default function App() {
     <main>
       {!startQuiz && <HomePage setStartQuiz={setStartQuiz} id={nanoid()} />}
       {startQuiz && quizArray}
-      <button className="submit-btn">Check Answers</button>
+      {!playAgain && startQuiz && <button className="submit-btn" onClick={checkAnswers}>Check Answers</button>}
+      {
+      playAgain && 
+      <div className="play-again">
+      <button className="play-again-btn" onClick={playAgainFn}>Play Again</button>
+      <h4>You got {numOfCorrect} of 5 correctly</h4>
+      </div>
+      }
     </main>
   );
 }

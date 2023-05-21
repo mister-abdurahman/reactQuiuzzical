@@ -16,7 +16,7 @@ export default function (props) {
                 // name={props.id}
                 name={props.id}
                 value={el}
-                onClick={(event) => props.selectedOption(event)}
+                onClick={(event) => props.saveSelectedOption(event)}
                 className="option"
                 // style={{
                 //   backgroundColor: props.selected ? "#59e391" : "transparent",
